@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Colonial Conquest</title>
+    <title>Colonial Conquest Mobile</title>
     <style>
         * {
             margin: 0;
@@ -12,97 +12,144 @@
         }
 
         body {
-            font-family: 'Courier New', monospace;
+            font-family: 'Arial', sans-serif;
             background: #1a1a2e;
             color: #eee;
-            overflow: hidden;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        .mobile-header {
+            background: #16213e;
+            padding: 10px 15px;
+            border-bottom: 2px solid #0e6ba8;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .current-player {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .player-stats {
+            font-size: 12px;
+            display: flex;
+            gap: 10px;
         }
 
         .game-container {
             display: flex;
-            height: 100vh;
+            flex-direction: column;
+            height: calc(100vh - 60px);
         }
 
         .map-area {
             flex: 1;
             background: #0f3460;
             position: relative;
-            overflow: hidden;
-        }
-
-        .sidebar {
-            width: 300px;
-            background: #16213e;
-            border-left: 2px solid #0e6ba8;
-            padding: 20px;
-            overflow-y: auto;
+            overflow: auto;
+            min-height: 60vh;
         }
 
         .world-map {
             width: 100%;
-            height: 100%;
+            min-width: 500px;
+            height: 400px;
             position: relative;
-            cursor: crosshair;
+            margin: 20px auto;
+            max-width: 800px;
         }
 
         .territory {
             position: absolute;
-            border: 2px solid #444;
-            border-radius: 8px;
+            border: 3px solid #444;
+            border-radius: 12px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             user-select: none;
+            min-height: 45px;
+            padding: 5px;
         }
 
-        .territory:hover {
-            border-color: #fff;
-            z-index: 10;
-            transform: scale(1.05);
+        .territory:active {
+            transform: scale(0.95);
         }
 
         .territory.selected {
             border-color: #ffff00;
-            box-shadow: 0 0 15px rgba(255, 255, 0, 0.5);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.7);
+            transform: scale(1.1);
+            z-index: 10;
         }
 
-        .territory.neutral { background: #666; }
-        .territory.player1 { background: #ff4444; }
-        .territory.player2 { background: #4444ff; }
-        .territory.player3 { background: #44ff44; }
-        .territory.player4 { background: #ffaa44; }
+        .territory.neutral { background: linear-gradient(135deg, #666, #888); }
+        .territory.player1 { background: linear-gradient(135deg, #ff4444, #ff6666); }
+        .territory.player2 { background: linear-gradient(135deg, #4444ff, #6666ff); }
+        .territory.player3 { background: linear-gradient(135deg, #44ff44, #66ff66); }
+        .territory.player4 { background: linear-gradient(135deg, #ffaa44, #ffcc66); }
 
-        .game-info {
-            margin-bottom: 20px;
+        .territory-name {
+            font-size: 10px;
+            text-align: center;
+            line-height: 1.1;
+            margin-bottom: 2px;
         }
 
-        .player-status {
-            background: #0f3460;
+        .territory-armies {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 8px;
+            padding: 2px 6px;
+            font-size: 9px;
+            color: white;
+        }
+
+        .control-panel {
+            background: #16213e;
+            border-top: 2px solid #0e6ba8;
             padding: 15px;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .territory-info {
+            background: #0f3460;
+            padding: 12px;
             border-radius: 8px;
             margin-bottom: 15px;
-            border: 2px solid #0e6ba8;
+            text-align: center;
         }
 
-        .player-status.active {
-            border-color: #ffff00;
-            box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+        .territory-info h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #ffff00;
         }
 
-        .player-info {
+        .territory-details {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
+            justify-content: space-around;
+            font-size: 12px;
         }
 
-        .controls {
-            background: #0f3460;
-            padding: 15px;
-            border-radius: 8px;
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             margin-bottom: 15px;
         }
 
@@ -110,21 +157,58 @@
             background: #0e6ba8;
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 15px 10px;
+            border-radius: 8px;
             cursor: pointer;
-            margin: 5px;
             font-family: inherit;
-            transition: background 0.3s;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.2s;
+            touch-action: manipulation;
+            min-height: 50px;
         }
 
-        .btn:hover {
+        .btn:active {
             background: #1177bb;
+            transform: scale(0.95);
         }
 
         .btn:disabled {
             background: #444;
+            color: #888;
             cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn.end-turn {
+            grid-column: span 2;
+            background: #ff6b35;
+            font-size: 16px;
+        }
+
+        .btn.end-turn:active {
+            background: #ff8555;
+        }
+
+        .player-overview {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+
+        .player-card {
+            background: #0f3460;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            flex: 1;
+            margin: 0 2px;
+            border: 2px solid transparent;
+        }
+
+        .player-card.active {
+            border-color: #ffff00;
         }
 
         .battle-modal {
@@ -133,232 +217,362 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            padding: 20px;
         }
 
         .battle-content {
             background: #16213e;
-            padding: 30px;
-            border-radius: 10px;
-            border: 2px solid #0e6ba8;
+            padding: 25px;
+            border-radius: 15px;
+            border: 3px solid #0e6ba8;
             text-align: center;
+            width: 100%;
             max-width: 400px;
         }
 
-        .army-display {
+        .battle-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ffff00;
+        }
+
+        .vs-display {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin: 20px 0;
         }
 
         .army-info {
             background: #0f3460;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 10px;
+            flex: 1;
+            margin: 0 5px;
+        }
+
+        .dice-section {
+            margin: 20px 0;
         }
 
         .dice-container {
             display: flex;
-            gap: 10px;
-            justify-content: center;
+            justify-content: space-around;
+            align-items: center;
             margin: 15px 0;
         }
 
         .dice {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             background: #fff;
             color: #000;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 5px;
+            border-radius: 8px;
             font-weight: bold;
-            animation: roll 1s ease-out;
+            font-size: 18px;
+            animation: roll 0.8s ease-out;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
         @keyframes roll {
-            0% { transform: rotateX(0deg) rotateY(0deg); }
-            50% { transform: rotateX(180deg) rotateY(180deg); }
-            100% { transform: rotateX(360deg) rotateY(360deg); }
+            0% { transform: rotateX(0deg) rotateY(0deg) scale(1); }
+            50% { transform: rotateX(180deg) rotateY(180deg) scale(1.2); }
+            100% { transform: rotateX(360deg) rotateY(360deg) scale(1); }
         }
 
-        .turn-indicator {
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #0f3460;
-            border-radius: 8px;
-        }
-
-        .territory-info {
+        .battle-result {
             background: #0f3460;
             padding: 15px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .battle-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .battle-actions .btn {
+            flex: 1;
+            padding: 12px;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(14, 107, 168, 0.8);
+            color: white;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .game-over-content {
+            background: #16213e;
+            padding: 40px 30px;
+            border-radius: 20px;
+            border: 3px solid #ffff00;
+            text-align: center;
+            max-width: 350px;
+        }
+
+        .winner-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffff00;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .world-map {
+                min-width: 400px;
+                height: 320px;
+            }
+            
+            .territory {
+                min-height: 40px;
+                font-size: 10px;
+            }
+            
+            .territory-name {
+                font-size: 9px;
+            }
+            
+            .territory-armies {
+                font-size: 8px;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="mobile-header">
+        <div class="header-info">
+            <div class="current-player" id="currentPlayerDisplay">🔴 Joueur 1</div>
+            <div class="player-stats">
+                <span>Tour: <span id="turnNumber">1</span></span>
+                <span>Armées: <span id="currentArmies">30</span></span>
+            </div>
+        </div>
+        <div class="player-overview">
+            <div class="player-card active" id="playerCard1">
+                <div>🔴 J1</div>
+                <div id="p1Territories">0T</div>
+            </div>
+            <div class="player-card" id="playerCard2">
+                <div>🔵 J2</div>
+                <div id="p2Territories">0T</div>
+            </div>
+            <div class="player-card" id="playerCard3">
+                <div>🟢 J3</div>
+                <div id="p3Territories">0T</div>
+            </div>
+            <div class="player-card" id="playerCard4">
+                <div>🟠 J4</div>
+                <div id="p4Territories">0T</div>
+            </div>
+        </div>
+    </div>
+
     <div class="game-container">
         <div class="map-area">
+            <div class="zoom-controls">
+                <button class="zoom-btn" id="zoomIn">+</button>
+                <button class="zoom-btn" id="zoomOut">-</button>
+            </div>
             <div class="world-map" id="worldMap"></div>
         </div>
         
-        <div class="sidebar">
-            <div class="turn-indicator" id="turnIndicator">Tour 1 - Joueur 1</div>
-            
-            <div class="game-info">
-                <div class="player-status active" id="player1Status">
-                    <div class="player-info">
-                        <span>🔴 Joueur 1</span>
-                        <span id="player1Territories">0 territoires</span>
-                    </div>
-                    <div>Armées: <span id="player1Armies">0</span></div>
-                </div>
-                
-                <div class="player-status" id="player2Status">
-                    <div class="player-info">
-                        <span>🔵 Joueur 2</span>
-                        <span id="player2Territories">0 territoires</span>
-                    </div>
-                    <div>Armées: <span id="player2Armies">0</span></div>
-                </div>
-                
-                <div class="player-status" id="player3Status">
-                    <div class="player-info">
-                        <span>🟢 Joueur 3</span>
-                        <span id="player3Territories">0 territoires</span>
-                    </div>
-                    <div>Armées: <span id="player3Armies">0</span></div>
-                </div>
-                
-                <div class="player-status" id="player4Status">
-                    <div class="player-info">
-                        <span>🟠 Joueur 4</span>
-                        <span id="player4Territories">0 territoires</span>
-                    </div>
-                    <div>Armées: <span id="player4Armies">0</span></div>
-                </div>
-            </div>
-            
+        <div class="control-panel">
             <div class="territory-info" id="territoryInfo">
                 <h3>Sélectionnez un territoire</h3>
-                <p>Cliquez sur un territoire pour voir ses informations</p>
+                <p>Touchez un territoire pour le sélectionner</p>
             </div>
             
-            <div class="controls">
-                <h3>Actions</h3>
-                <button class="btn" id="deployBtn" disabled>Déployer armées</button>
-                <button class="btn" id="attackBtn" disabled>Attaquer</button>
-                <button class="btn" id="fortifyBtn" disabled>Fortifier</button>
-                <button class="btn" id="endTurnBtn">Fin du tour</button>
+            <div class="action-buttons">
+                <button class="btn" id="deployBtn" disabled>
+                    🛡️<br>Déployer
+                </button>
+                <button class="btn" id="attackBtn" disabled>
+                    ⚔️<br>Attaquer
+                </button>
+                <button class="btn" id="fortifyBtn" disabled>
+                    🏰<br>Fortifier
+                </button>
+                <button class="btn end-turn" id="endTurnBtn">
+                    ⏭️ Fin du tour
+                </button>
             </div>
         </div>
     </div>
 
     <div class="battle-modal" id="battleModal">
         <div class="battle-content">
-            <h2>Bataille!</h2>
-            <div class="army-display">
+            <div class="battle-header">⚔️ BATAILLE! ⚔️</div>
+            <div class="vs-display">
                 <div class="army-info">
                     <h4>Attaquant</h4>
                     <div id="attackerInfo"></div>
                 </div>
+                <div style="font-size: 24px; color: #ffff00;">VS</div>
                 <div class="army-info">
                     <h4>Défenseur</h4>
                     <div id="defenderInfo"></div>
                 </div>
             </div>
-            <div class="dice-container">
-                <div>Attaquant:</div>
-                <div id="attackerDice"></div>
-                <div>vs</div>
-                <div id="defenderDice"></div>
-                <div>Défenseur</div>
+            
+            <div class="dice-section">
+                <div class="dice-container">
+                    <div>
+                        <div>Attaquant</div>
+                        <div id="attackerDice" style="margin-top: 10px;"></div>
+                    </div>
+                    <div>
+                        <div>Défenseur</div>
+                        <div id="defenderDice" style="margin-top: 10px;"></div>
+                    </div>
+                </div>
             </div>
-            <div id="battleResult"></div>
-            <button class="btn" id="continueBattleBtn">Continuer l'attaque</button>
-            <button class="btn" id="endBattleBtn">Arrêter l'attaque</button>
+            
+            <div class="battle-result" id="battleResult"></div>
+            
+            <div class="battle-actions">
+                <button class="btn" id="continueBattleBtn">Continuer</button>
+                <button class="btn" id="endBattleBtn">Arrêter</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <div class="game-over-content">
+            <div class="winner-text" id="winnerText">🎉 Victoire! 🎉</div>
+            <button class="btn" onclick="location.reload()">Nouvelle Partie</button>
         </div>
     </div>
 
     <script>
-        class ColonialConquest {
+        class MobileColonialConquest {
             constructor() {
                 this.territories = [];
                 this.players = [
-                    { id: 1, name: 'Joueur 1', color: 'player1', armies: 30 },
-                    { id: 2, name: 'Joueur 2', color: 'player2', armies: 30 },
-                    { id: 3, name: 'Joueur 3', color: 'player3', armies: 30 },
-                    { id: 4, name: 'Joueur 4', color: 'player4', armies: 30 }
+                    { id: 1, name: 'Joueur 1', color: 'player1', armies: 30, emoji: '🔴' },
+                    { id: 2, name: 'Joueur 2', color: 'player2', armies: 30, emoji: '🔵' },
+                    { id: 3, name: 'Joueur 3', color: 'player3', armies: 30, emoji: '🟢' },
+                    { id: 4, name: 'Joueur 4', color: 'player4', armies: 30, emoji: '🟠' }
                 ];
                 this.currentPlayer = 0;
                 this.turn = 1;
-                this.phase = 'deploy'; // deploy, attack, fortify
+                this.phase = 'deploy';
                 this.selectedTerritory = null;
-                this.gamePhase = 'initial'; // initial, playing
+                this.mapScale = 1;
+                this.currentBattle = null;
                 
                 this.initializeTerritories();
                 this.createMap();
                 this.updateUI();
                 this.setupEventListeners();
+                this.distributeInitialTerritories();
             }
             
             initializeTerritories() {
                 const territoryData = [
                     { name: 'Europe', x: 45, y: 25, width: 80, height: 60 },
-                    { name: 'Asie', x: 60, y: 15, width: 120, height: 80 },
-                    { name: 'Afrique', x: 45, y: 45, width: 70, height: 90 },
-                    { name: 'Am. Nord', x: 15, y: 20, width: 90, height: 70 },
-                    { name: 'Am. Sud', x: 25, y: 60, width: 60, height: 80 },
-                    { name: 'Océanie', x: 75, y: 70, width: 80, height: 50 },
-                    { name: 'Inde', x: 65, y: 40, width: 50, height: 40 },
-                    { name: 'Chine', x: 70, y: 25, width: 60, height: 45 },
-                    { name: 'Japon', x: 85, y: 30, width: 30, height: 25 },
-                    { name: 'Russie', x: 50, y: 10, width: 100, height: 40 },
-                    { name: 'Moyen-Orient', x: 55, y: 35, width: 45, height: 35 },
-                    { name: 'Égypte', x: 50, y: 45, width: 35, height: 25 }
+                    { name: 'Asie', x: 65, y: 15, width: 100, height: 70 },
+                    { name: 'Afrique', x: 45, y: 50, width: 70, height: 80 },
+                    { name: 'Am.Nord', x: 15, y: 20, width: 80, height: 60 },
+                    { name: 'Am.Sud', x: 25, y: 65, width: 60, height: 70 },
+                    { name: 'Océanie', x: 75, y: 75, width: 70, height: 45 },
+                    { name: 'Inde', x: 70, y: 40, width: 50, height: 40 },
+                    { name: 'Chine', x: 75, y: 25, width: 55, height: 40 },
+                    { name: 'Japon', x: 85, y: 30, width: 35, height: 25 },
+                    { name: 'Russie', x: 55, y: 5, width: 90, height: 35 },
+                    { name: 'M-Orient', x: 55, y: 35, width: 45, height: 30 },
+                    { name: 'Égypte', x: 50, y: 50, width: 35, height: 25 }
                 ];
                 
                 this.territories = territoryData.map((data, index) => ({
                     id: index,
                     ...data,
                     owner: null,
-                    armies: Math.floor(Math.random() * 3) + 1,
-                    neighbors: [] // Simplified for this demo
+                    armies: 1,
+                    neighbors: []
                 }));
                 
-                // Set up some basic neighbor relationships
                 this.setupNeighbors();
             }
             
             setupNeighbors() {
-                // Simplified neighbor setup based on geographical proximity
                 const neighbors = {
-                    0: [1, 2, 10], // Europe -> Asie, Afrique, Moyen-Orient
-                    1: [0, 7, 9], // Asie -> Europe, Chine, Russie
-                    2: [0, 10, 11], // Afrique -> Europe, Moyen-Orient, Égypte
-                    3: [4], // Am. Nord -> Am. Sud
-                    4: [3], // Am. Sud -> Am. Nord
-                    5: [1], // Océanie -> Asie
-                    6: [1, 7, 10], // Inde -> Asie, Chine, Moyen-Orient
-                    7: [1, 6, 8, 9], // Chine -> Asie, Inde, Japon, Russie
-                    8: [7], // Japon -> Chine
-                    9: [1, 7], // Russie -> Asie, Chine
-                    10: [0, 2, 6, 11], // Moyen-Orient -> Europe, Afrique, Inde, Égypte
-                    11: [2, 10] // Égypte -> Afrique, Moyen-Orient
+                    0: [1, 2, 10], // Europe
+                    1: [0, 7, 9, 6], // Asie
+                    2: [0, 10, 11], // Afrique
+                    3: [4], // Am. Nord
+                    4: [3], // Am. Sud
+                    5: [1, 6], // Océanie
+                    6: [1, 7, 10], // Inde
+                    7: [1, 6, 8, 9], // Chine
+                    8: [7], // Japon
+                    9: [1, 7], // Russie
+                    10: [0, 2, 6, 11], // Moyen-Orient
+                    11: [2, 10] // Égypte
                 };
                 
                 Object.keys(neighbors).forEach(id => {
                     this.territories[id].neighbors = neighbors[id];
                 });
+            }
+            
+            distributeInitialTerritories() {
+                // Distribute territories randomly to players
+                const shuffledTerritories = [...this.territories].sort(() => Math.random() - 0.5);
+                const territoriesPerPlayer = Math.floor(shuffledTerritories.length / this.players.length);
+                
+                shuffledTerritories.forEach((territory, index) => {
+                    const playerIndex = Math.floor(index / territoriesPerPlayer);
+                    if (playerIndex < this.players.length) {
+                        territory.owner = this.players[playerIndex].id;
+                        territory.armies = Math.floor(Math.random() * 3) + 2;
+                        this.updateTerritoryDisplay(territory.id);
+                    }
+                });
+                
+                this.updateUI();
             }
             
             createMap() {
@@ -374,40 +588,57 @@
                     territoryDiv.style.height = `${territory.height}px`;
                     
                     territoryDiv.innerHTML = `
-                        <div style="text-align: center;">
-                            <div>${territory.name}</div>
-                            <div style="font-size: 10px;">${territory.armies} armées</div>
-                        </div>
+                        <div class="territory-name">${territory.name}</div>
+                        <div class="territory-armies">${territory.armies}</div>
                     `;
                     
-                    territoryDiv.addEventListener('click', () => this.selectTerritory(territory.id));
+                    territoryDiv.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.selectTerritory(territory.id);
+                    });
+                    
+                    territoryDiv.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        this.selectTerritory(territory.id);
+                    });
+                    
                     mapElement.appendChild(territoryDiv);
                 });
             }
             
             selectTerritory(territoryId) {
-                // Remove previous selection
                 document.querySelectorAll('.territory').forEach(t => t.classList.remove('selected'));
                 
                 this.selectedTerritory = territoryId;
                 const territory = this.territories[territoryId];
                 
-                // Highlight selected territory
                 document.getElementById(`territory-${territoryId}`).classList.add('selected');
-                
-                // Update territory info
                 this.updateTerritoryInfo(territory);
                 this.updateActionButtons();
+                
+                // Gentle vibration feedback on mobile
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
             }
             
             updateTerritoryInfo(territory) {
                 const infoDiv = document.getElementById('territoryInfo');
                 const ownerName = territory.owner ? this.players[territory.owner - 1].name : 'Neutre';
+                const ownerEmoji = territory.owner ? this.players[territory.owner - 1].emoji : '⚪';
                 
                 infoDiv.innerHTML = `
                     <h3>${territory.name}</h3>
-                    <p><strong>Contrôlé par:</strong> ${ownerName}</p>
-                    <p><strong>Armées:</strong> ${territory.armies}</p>
+                    <div class="territory-details">
+                        <div>
+                            <strong>Contrôlé par:</strong><br>
+                            ${ownerEmoji} ${ownerName}
+                        </div>
+                        <div>
+                            <strong>Armées:</strong><br>
+                            🛡️ ${territory.armies}
+                        </div>
+                    </div>
                 `;
             }
             
@@ -443,6 +674,12 @@
                     player.armies--;
                     this.updateTerritoryDisplay(this.selectedTerritory);
                     this.updateUI();
+                    
+                    // Auto-advance to attack phase when no armies left
+                    if (player.armies === 0) {
+                        this.phase = 'attack';
+                        this.updateActionButtons();
+                    }
                 }
             }
             
@@ -454,52 +691,51 @@
                 
                 if (attackingTerritory.owner !== player.id || attackingTerritory.armies <= 1) return;
                 
-                // Find potential targets (neighbors not owned by current player)
                 const targets = attackingTerritory.neighbors.filter(neighborId => {
                     const neighbor = this.territories[neighborId];
                     return neighbor.owner !== player.id;
                 });
                 
                 if (targets.length === 0) {
-                    alert('Aucun territoire ennemi adjacent à attaquer!');
+                    alert('Aucun territoire ennemi adjacent!');
                     return;
                 }
                 
-                // For simplicity, attack the first available target
+                // If multiple targets, let player choose (simplified: take first for now)
                 const targetId = targets[0];
-                this.conductBattle(this.selectedTerritory, targetId);
+                this.currentBattle = { attacker: this.selectedTerritory, defender: targetId };
+                this.showBattleModal();
             }
             
-            conductBattle(attackerId, defenderId) {
-                const attacker = this.territories[attackerId];
-                const defender = this.territories[defenderId];
-                
-                // Show battle modal
-                this.showBattleModal(attacker, defender);
-            }
-            
-            showBattleModal(attacker, defender) {
+            showBattleModal() {
                 const modal = document.getElementById('battleModal');
+                const attacker = this.territories[this.currentBattle.attacker];
+                const defender = this.territories[this.currentBattle.defender];
+                
                 const attackerInfo = document.getElementById('attackerInfo');
                 const defenderInfo = document.getElementById('defenderInfo');
                 
+                const attackerPlayer = this.players[attacker.owner - 1];
+                const defenderPlayer = defender.owner ? this.players[defender.owner - 1] : { emoji: '⚪', name: 'Neutre' };
+                
                 attackerInfo.innerHTML = `
-                    <div>${attacker.name}</div>
-                    <div>${attacker.armies} armées</div>
+                    <div>${attackerPlayer.emoji} ${attacker.name}</div>
+                    <div>🛡️ ${attacker.armies} armées</div>
                 `;
                 
                 defenderInfo.innerHTML = `
-                    <div>${defender.name}</div>
-                    <div>${defender.armies} armées</div>
+                    <div>${defenderPlayer.emoji} ${defender.name}</div>
+                    <div>🛡️ ${defender.armies} armées</div>
                 `;
                 
                 modal.style.display = 'flex';
-                
-                // Conduct battle round
-                this.battleRound(attacker, defender);
+                this.battleRound();
             }
             
-            battleRound(attacker, defender) {
+            battleRound() {
+                const attacker = this.territories[this.currentBattle.attacker];
+                const defender = this.territories[this.currentBattle.defender];
+                
                 const attackerDice = Math.floor(Math.random() * 6) + 1;
                 const defenderDice = Math.floor(Math.random() * 6) + 1;
                 
@@ -511,48 +747,64 @@
                 defenderDiceDiv.innerHTML = `<div class="dice">${defenderDice}</div>`;
                 
                 let result = '';
-                if (attackerDice > defenderDice) {
-                    defender.armies--;
-                    result = 'L\'attaquant gagne! Le défenseur perd 1 armée.';
-                    if (defender.armies <= 0) {
-                        // Territory conquered
-                        const previousOwner = defender.owner;
-                        defender.owner = attacker.owner;
-                        defender.armies = 1;
+                let battleEnded = false;
+                
+                setTimeout(() => {
+                    if (attackerDice > defenderDice) {
+                        defender.armies--;
+                        result = '🎯 Attaquant gagne!<br>Défenseur perd 1 armée';
+                        if (defender.armies <= 0) {
+                            defender.owner = attacker.owner;
+                            defender.armies = 1;
+                            attacker.armies--;
+                            result += '<br>🏆 Territoire conquis!';
+                            battleEnded = true;
+                        }
+                    } else {
                         attacker.armies--;
-                        result += ` ${defender.name} est conquis!`;
-                        this.hideBattleModal();
-                        this.updateTerritoryDisplay(this.territories.indexOf(defender));
+                        result = '🛡️ Défenseur gagne!<br>Attaquant perd 1 armée';
+                        if (attacker.armies <= 1) {
+                            result += '<br>⚠️ Attaque impossible';
+                            battleEnded = true;
+                        }
                     }
-                } else {
-                    attacker.armies--;
-                    result = 'Le défenseur gagne! L\'attaquant perd 1 armée.';
-                    if (attacker.armies <= 1) {
-                        result += ' L\'attaque ne peut plus continuer.';
-                        this.hideBattleModal();
+                    
+                    resultDiv.innerHTML = result;
+                    
+                    // Update displays
+                    this.updateTerritoryDisplay(this.currentBattle.attacker);
+                    this.updateTerritoryDisplay(this.currentBattle.defender);
+                    this.updateUI();
+                    
+                    if (battleEnded) {
+                        document.getElementById('continueBattleBtn').disabled = true;
+                        setTimeout(() => {
+                            this.hideBattleModal();
+                            if (this.checkGameEnd()) {
+                                this.endGame();
+                            }
+                        }, 2000);
+                    } else {
+                        document.getElementById('continueBattleBtn').disabled = false;
                     }
-                }
-                
-                resultDiv.innerHTML = result;
-                this.updateTerritoryDisplay(this.territories.indexOf(attacker));
-                this.updateTerritoryDisplay(this.territories.indexOf(defender));
-                this.updateUI();
-                
-                // Check for game end
-                if (this.checkGameEnd()) {
-                    this.endGame();
-                }
+                    
+                    // Vibration feedback
+                    if (navigator.vibrate) {
+                        navigator.vibrate(battleEnded ? [100, 50, 100] : [100]);
+                    }
+                }, 800);
             }
             
             hideBattleModal() {
                 document.getElementById('battleModal').style.display = 'none';
+                document.getElementById('continueBattleBtn').disabled = false;
+                this.currentBattle = null;
             }
             
             updateTerritoryDisplay(territoryId) {
                 const territory = this.territories[territoryId];
                 const territoryDiv = document.getElementById(`territory-${territoryId}`);
                 
-                // Update class based on owner
                 territoryDiv.className = 'territory';
                 if (territory.owner) {
                     territoryDiv.classList.add(this.players[territory.owner - 1].color);
@@ -560,12 +812,9 @@
                     territoryDiv.classList.add('neutral');
                 }
                 
-                // Update content
                 territoryDiv.innerHTML = `
-                    <div style="text-align: center;">
-                        <div>${territory.name}</div>
-                        <div style="font-size: 10px;">${territory.armies} armées</div>
-                    </div>
+                    <div class="territory-name">${territory.name}</div>
+                    <div class="territory-armies">${territory.armies}</div>
                 `;
                 
                 if (territoryId === this.selectedTerritory) {
@@ -574,7 +823,6 @@
             }
             
             endTurn() {
-                // Give bonus armies based on territories controlled
                 const player = this.players[this.currentPlayer];
                 const territoriesControlled = this.territories.filter(t => t.owner === player.id).length;
                 const bonusArmies = Math.max(3, Math.floor(territoriesControlled / 3));
@@ -585,7 +833,6 @@
                     this.turn++;
                 }
                 
-                // Add bonus armies to new current player
                 this.players[this.currentPlayer].armies += bonusArmies;
                 this.phase = 'deploy';
                 this.selectedTerritory = null;
@@ -595,18 +842,20 @@
             }
             
             updateUI() {
-                // Update turn indicator
-                document.getElementById('turnIndicator').textContent = 
-                    `Tour ${this.turn} - ${this.players[this.currentPlayer].name}`;
+                // Update header
+                const currentPlayerData = this.players[this.currentPlayer];
+                document.getElementById('currentPlayerDisplay').textContent = 
+                    `${currentPlayerData.emoji} ${currentPlayerData.name}`;
+                document.getElementById('turnNumber').textContent = this.turn;
+                document.getElementById('currentArmies').textContent = currentPlayerData.armies;
                 
-                // Update player statuses
+                // Update player cards
                 this.players.forEach((player, index) => {
-                    const statusDiv = document.getElementById(`player${index + 1}Status`);
+                    const playerCard = document.getElementById(`playerCard${index + 1}`);
                     const territoriesControlled = this.territories.filter(t => t.owner === player.id).length;
                     
-                    statusDiv.classList.toggle('active', index === this.currentPlayer);
-                    document.getElementById(`player${index + 1}Territories`).textContent = `${territoriesControlled} territoires`;
-                    document.getElementById(`player${index + 1}Armies`).textContent = player.armies;
+                    playerCard.classList.toggle('active', index === this.currentPlayer);
+                    document.getElementById(`p${index + 1}Territories`).textContent = `${territoriesControlled}T`;
                 });
                 
                 this.updateActionButtons();
@@ -626,41 +875,99 @@
             endGame() {
                 const winner = this.territories.find(t => t.owner)?.owner;
                 if (winner) {
-                    const winnerName = this.players[winner - 1].name;
-                    alert(`🎉 ${winnerName} a conquis le monde! 🎉`);
+                    const winnerData = this.players[winner - 1];
+                    document.getElementById('winnerText').innerHTML = 
+                        `🎉 VICTOIRE! 🎉<br>${winnerData.emoji} ${winnerData.name}<br>a conquis le monde!`;
+                    document.getElementById('gameOver').style.display = 'flex';
+                    
+                    // Victory vibration
+                    if (navigator.vibrate) {
+                        navigator.vibrate([200, 100, 200, 100, 200]);
+                    }
                 }
             }
             
             setupEventListeners() {
+                // Action buttons
                 document.getElementById('deployBtn').addEventListener('click', () => this.deployArmies());
                 document.getElementById('attackBtn').addEventListener('click', () => this.initiateAttack());
+                document.getElementById('fortifyBtn').addEventListener('click', () => this.fortifyTerritory());
                 document.getElementById('endTurnBtn').addEventListener('click', () => this.endTurn());
                 
+                // Battle modal buttons
                 document.getElementById('continueBattleBtn').addEventListener('click', () => {
-                    const modal = document.getElementById('battleModal');
-                    if (modal.style.display === 'flex') {
-                        // Get current battle context and continue
-                        const attacker = this.territories[this.selectedTerritory];
-                        const defenderId = attacker.neighbors.find(nId => {
-                            const neighbor = this.territories[nId];
-                            return neighbor.owner !== attacker.owner;
-                        });
-                        if (defenderId !== undefined) {
-                            const defender = this.territories[defenderId];
-                            this.battleRound(attacker, defender);
-                        }
+                    if (this.currentBattle && !document.getElementById('continueBattleBtn').disabled) {
+                        this.battleRound();
                     }
                 });
                 
                 document.getElementById('endBattleBtn').addEventListener('click', () => {
                     this.hideBattleModal();
                 });
+                
+                // Zoom controls
+                document.getElementById('zoomIn').addEventListener('click', () => this.zoomMap(1.2));
+                document.getElementById('zoomOut').addEventListener('click', () => this.zoomMap(0.8));
+                
+                // Prevent default touch behaviors on map
+                const mapArea = document.getElementById('worldMap');
+                mapArea.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 1) {
+                        e.preventDefault(); // Prevent pinch zoom
+                    }
+                });
+                
+                mapArea.addEventListener('touchmove', (e) => {
+                    if (e.touches.length > 1) {
+                        e.preventDefault(); // Prevent pinch zoom
+                    }
+                });
+            }
+            
+            fortifyTerritory() {
+                if (this.selectedTerritory === null) return;
+                
+                const territory = this.territories[this.selectedTerritory];
+                const player = this.players[this.currentPlayer];
+                
+                if (territory.owner === player.id && territory.armies > 1) {
+                    // Simple fortification: move 1 army from this territory to a random friendly neighbor
+                    const friendlyNeighbors = territory.neighbors.filter(neighborId => {
+                        const neighbor = this.territories[neighborId];
+                        return neighbor.owner === player.id;
+                    });
+                    
+                    if (friendlyNeighbors.length > 0) {
+                        const targetId = friendlyNeighbors[0]; // Simplified: take first friendly neighbor
+                        const target = this.territories[targetId];
+                        
+                        territory.armies--;
+                        target.armies++;
+                        
+                        this.updateTerritoryDisplay(this.selectedTerritory);
+                        this.updateTerritoryDisplay(targetId);
+                        this.updateUI();
+                        
+                        alert(`1 armée transférée vers ${target.name}`);
+                    } else {
+                        alert('Aucun territoire ami adjacent pour la fortification!');
+                    }
+                }
+            }
+            
+            zoomMap(factor) {
+                this.mapScale *= factor;
+                this.mapScale = Math.max(0.5, Math.min(2.0, this.mapScale)); // Limit zoom range
+                
+                const mapElement = document.getElementById('worldMap');
+                mapElement.style.transform = `scale(${this.mapScale})`;
+                mapElement.style.transformOrigin = 'center center';
             }
         }
         
         // Initialize the game when the page loads
         window.addEventListener('DOMContentLoaded', () => {
-            new ColonialConquest();
+            new MobileColonialConquest();
         });
     </script>
 </body>
