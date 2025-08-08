@@ -1,0 +1,94 @@
+{
+    "name": "Kanban Board",
+    "description": "Widget Kanban avancé avec 6 colonnes, édition en ligne, support HTML/Markdown, et couleurs personnalisées",
+    "version": "1.0.0",
+    "author": "Assistant Claude",
+    "main": "index.html",
+    "preview": "kanban-preview.png",
+    "columns": [
+        {
+            "name": "title",
+            "title": "Titre",
+            "type": "Text",
+            "required": true,
+            "description": "Le titre de la tâche"
+        },
+        {
+            "name": "description", 
+            "title": "Description",
+            "type": "Text",
+            "required": false,
+            "description": "Description détaillée de la tâche"
+        },
+        {
+            "name": "status",
+            "title": "Statut", 
+            "type": "Choice",
+            "required": true,
+            "choices": ["À prévoir", "À faire", "Appels", "Mails", "En cours", "Terminé"],
+            "description": "Statut actuel de la tâche"
+        },
+        {
+            "name": "priority",
+            "title": "Priorité",
+            "type": "Choice", 
+            "required": false,
+            "choices": ["Basse", "Moyenne", "Haute"],
+            "description": "Niveau de priorité de la tâche"
+        },
+        {
+            "name": "assignee",
+            "title": "Assigné à",
+            "type": "Text",
+            "required": false,
+            "description": "Personne responsable de la tâche"
+        },
+        {
+            "name": "due_date",
+            "title": "Date d'échéance",
+            "type": "Date",
+            "required": false,
+            "description": "Date limite pour compléter la tâche"
+        },
+        {
+            "name": "image_url",
+            "title": "Image URL",
+            "type": "Text",
+            "required": false,
+            "description": "URL de l'image associée à la tâche"
+        },
+        {
+            "name": "color",
+            "title": "Couleur",
+            "type": "Choice",
+            "required": false,
+            "choices": ["blue", "red", "green", "yellow", "purple", "orange", "gray"],
+            "description": "Couleur d'affichage de la tâche"
+        },
+        {
+            "name": "order_position",
+            "title": "Position",
+            "type": "Numeric",
+            "required": false,
+            "description": "Position de la tâche dans sa colonne pour l'ordre d'affichage"
+        }
+    ],
+    "features": [
+        "Visualisation en 6 colonnes (À prévoir, À faire, Appels, Mails, En cours, Terminé)",
+        "Masquage automatique des colonnes vides avec affichage complet lors du drag & drop",
+        "Réorganisation des tâches par drag & drop dans la même colonne avec indicateur visuel",
+        "Création de nouvelles tâches directement depuis chaque colonne avec bouton +",
+        "Édition complète des tâches directement dans le widget avec formulaire modal",
+        "Support HTML et Markdown dans les descriptions avec rendu sécurisé",
+        "Système de couleurs personnalisées pour les tâches (7 couleurs disponibles)",
+        "Drag & drop intelligent avec mise à jour automatique des données et positions",
+        "Support des priorités avec codes couleur et images attachées",
+        "Suppression des tâches avec animation fluide et confirmation",
+        "Interface responsive et moderne avec animations CSS avancées",
+        "Intégration complète avec l'API Grist et gestion d'erreurs robuste"
+    ],
+    "requirements": {
+        "grist_version": ">=1.0.0",
+        "access": "full"
+    }
+}

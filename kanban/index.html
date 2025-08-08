@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grist Kanban Widget</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+</head>
+<body>
+    <div id="kanban-container">
+        <div class="kanban-header">
+            <h2>Tableau Kanban</h2>
+            <button id="refresh-btn" class="btn btn-refresh">↻ Actualiser</button>
+        </div>
+        
+        <div id="kanban-board" class="kanban-board">
+            <div class="kanban-column" data-status="planned">
+                <div class="column-header">
+                    <h3>À prévoir</h3>
+                    <span class="card-count">0</span>
+                    <button class="add-task-btn" data-status="planned" title="Ajouter une tâche">+</button>
+                </div>
+                <div class="column-content" id="planned-column"></div>
+            </div>
+            
+            <div class="kanban-column" data-status="todo">
+                <div class="column-header">
+                    <h3>À faire</h3>
+                    <span class="card-count">0</span>
+                    <button class="add-task-btn" data-status="todo" title="Ajouter une tâche">+</button>
+                </div>
+                <div class="column-content" id="todo-column"></div>
+            </div>
+            
+            <div class="kanban-column" data-status="calls">
+                <div class="column-header">
+                    <h3>📞 Appels</h3>
+                    <span class="card-count">0</span>
+                    <button class="add-task-btn" data-status="calls" title="Ajouter une tâche">+</button>
+                </div>
+                <div class="column-content" id="calls-column"></div>
+            </div>
+            
+            <div class="kanban-column" data-status="mails">
+                <div class="column-header">
+                    <h3>📧 Mails</h3>
+                    <span class="card-count">0</span>
+                    <button class="add-task-btn" data-status="mails" title="Ajouter une tâche">+</button>
+                </div>
+                <div class="column-content" id="mails-column"></div>
+            </div>
+            
+            <div class="kanban-column" data-status="in-progress">
+                <div class="column-header">
+                    <h3>En cours</h3>
+                    <span class="card-count">0</span>
+                    <button class="add-task-btn" data-status="in-progress" title="Ajouter une tâche">+</button>
+                </div>
+                <div class="column-content" id="in-progress-column"></div>
+            </div>
+            
+            <div class="kanban-column" data-status="done">
+                <div class="column-header">
+                    <h3>Terminé</h3>
+                    <span class="card-count">0</span>
+                    <button class="add-task-btn" data-status="done" title="Ajouter une tâche">+</button>
+                </div>
+                <div class="column-content" id="done-column"></div>
+            </div>
+        </div>
+        
+        <div id="no-data" class="no-data" style="display: none;">
+            <p>Aucune donnée disponible. Assurez-vous que votre table Grist contient les colonnes nécessaires.</p>
+        </div>
+    </div>
+
+    <!-- Modal d'édition -->
+    <div id="edit-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Éditer la tâche</h3>
+                <span class="close">&times;</span>
+            </div>
+            <form id="edit-form" class="edit-form">
+                <div class="form-group">
+                    <label for="edit-title">Titre *</label>
+                    <input type="text" id="edit-title" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-description">Description</label>
+                    <textarea id="edit-description" name="description" rows="4" placeholder="Supporte HTML et Markdown"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-status">Statut *</label>
+                        <select id="edit-status" name="status" required>
+                            <option value="À prévoir">À prévoir</option>
+                            <option value="À faire">À faire</option>
+                            <option value="Appels">📞 Appels</option>
+                            <option value="Mails">📧 Mails</option>
+                            <option value="En cours">En cours</option>
+                            <option value="Terminé">Terminé</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-priority">Priorité</label>
+                        <select id="edit-priority" name="priority">
+                            <option value="Basse">Basse</option>
+                            <option value="Moyenne">Moyenne</option>
+                            <option value="Haute">Haute</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-assignee">Assigné à</label>
+                        <input type="text" id="edit-assignee" name="assignee">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-due-date">Date d'échéance</label>
+                        <input type="date" id="edit-due-date" name="due_date">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-color">Couleur</label>
+                        <select id="edit-color" name="color">
+                            <option value="blue">🔵 Bleu</option>
+                            <option value="red">🔴 Rouge</option>
+                            <option value="green">🟢 Vert</option>
+                            <option value="yellow">🟡 Jaune</option>
+                            <option value="purple">🟣 Violet</option>
+                            <option value="orange">🟠 Orange</option>
+                            <option value="gray">⚫ Gris</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-image">Image URL</label>
+                        <input type="url" id="edit-image" name="image_url" placeholder="https://...">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" id="cancel-edit" class="btn btn-secondary">Annuler</button>
+                    <button type="submit" id="save-btn" class="btn btn-primary">Sauvegarder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="kanban.js"></script>
+</body>
+</html>
